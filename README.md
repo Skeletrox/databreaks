@@ -27,5 +27,5 @@ Very, *very* little, as of now. The following table should let you know:
 
 | Language | Create? | Read? | Update? | Delete? | Additional Notes |
 | -------- | ------- | ----- | ------- | ------- | ---------------  |
-| InfluxQL | - [ ] | - [ x ] | - [ ] | - [ ] | Only aggregate queries are supported, until functions can be made optional |
+| InfluxQL | ☐ | ☑ | ☐ | ☐ | Only aggregate queries are supported, until functions can be made optional |
 
