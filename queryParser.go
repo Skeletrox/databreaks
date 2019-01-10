@@ -1,9 +1,12 @@
 package databreaks
 
 import (
+	"bytes"
 	"errors"
+	"fmt"
 	"log"
 	"regexp"
+	"strings"
 )
 
 /*DecomposeQuery decomposes a query*/
@@ -74,7 +77,7 @@ func DecomposeQuery(query string) (SQLQuery, error) {
 		fieldUnitMatches := fieldUnitMatcher.FindAllStringSubmatch(bMatch[0], -1)
 		asMatches := asMatcher.FindAllStringSubmatch(bMatch[0], -1)
 
-		var fUnits []FieldCompositeUnit
+		var fUnits []FieldPair
 		/*
 			Break each field unit into the function and column
 		*/
@@ -86,9 +89,9 @@ func DecomposeQuery(query string) (SQLQuery, error) {
 				log.Println(err.Error())
 				return SQLQuery{}, err
 			}
-			function := fCMatches[0][1]
-			column := fCMatches[0][2]
-			fUnit := FieldCompositeUnit{Function: function, Column: column}
+			function := strings.Trim(fCMatches[0][1], " \t")
+			column := strings.Trim(fCMatches[0][2], " \t")
+			fUnit := FieldPair{Function: function, Column: column}
 			fUnits = append(fUnits, fUnit)
 		}
 		var alias string
@@ -115,4 +118,61 @@ func (s *SQLParser) ParseQueryFromLang(query string) error {
 	var err error
 	s.Query, err = DecomposeQuery(query)
 	return err
+}
+
+/*ParseQueryToLang for a SQL parser is a that composes a query from the struct based on the language.
+As if now it ignores the language and just converts to InfluxQL
+
+*/
+func (s *SQLParser) ParseQueryToLang() string {
+	returnable := s.Query.Stringify()
+	return returnable
+}
+
+/*Stringify for a FieldPair uses the function and column to create a function(column) pair
+
+ */
+func (f *FieldPair) Stringify() string {
+	returnable := fmt.Sprintf("%s(%s)", f.Function, f.Column)
+	return returnable
+}
+
+/*Stringify for a FieldBranch recursively stringifies the fieldPairs, separating them by their operators
+ */
+func (f *FieldBranch) Stringify() string {
+	var returnableBuff bytes.Buffer
+	numOps := len(f.Operators)
+	for i, fu := range f.FieldUnits {
+		returnableBuff.WriteString(fu.Stringify())
+		if i < numOps {
+			returnableBuff.WriteString(fmt.Sprintf(" %s ", f.Operators[i]))
+		}
+	}
+	if len(f.Alias) > 0 {
+		returnableBuff.WriteString(fmt.Sprintf(" AS %s", f.Alias))
+	}
+	return returnableBuff.String()
+}
+
+/*Stringify or a FieldComposite stringifies its FieldBranches and places commas between them*/
+func (f *FieldComposite) Stringify() string {
+	var returnableBuff bytes.Buffer
+	numBranches := len(f.FieldBranches)
+	for i, fB := range f.FieldBranches {
+		returnableBuff.WriteString(fB.Stringify())
+		if i < numBranches-1 {
+			returnableBuff.WriteString(", ")
+		}
+	}
+	return returnableBuff.String()
+}
+
+/*Stringify for a SQLQuery builds the entire string by manufacturing a legitimate SQL query
+ */
+func (s *SQLQuery) Stringify() string {
+	var returnableBuff bytes.Buffer
+	returnableBuff.WriteString("SELECT ")
+	returnableBuff.WriteString(s.Fields.Stringify())
+	returnableBuff.WriteString(fmt.Sprintf(" FROM %s", s.Measurement))
+	return returnableBuff.String()
 }

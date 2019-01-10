@@ -24,16 +24,9 @@ type FieldComposite struct {
 /*A FieldBranch is a single column in the output that might be a single column from the DB or a composite of multiple, with an optional alias
  */
 type FieldBranch struct {
-	FieldUnits []FieldCompositeUnit `json:"field_units"`
-	Operators  []string             `json:"operators"`
-	Alias      string               `json:"alias"`
-}
-
-/*A FieldCompositeUnit is a single unit that contains a function and a column name
- */
-type FieldCompositeUnit struct {
-	Function string `json:"function"`
-	Column   string `json:"column"`
+	FieldUnits []FieldPair `json:"field_units"`
+	Operators  []string    `json:"operators"`
+	Alias      string      `json:"alias"`
 }
 
 /*A SQLQuery is a machine that decomposes a SQL query into language-independent constituents
