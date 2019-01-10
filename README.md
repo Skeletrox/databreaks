@@ -27,5 +27,5 @@ Very, *very* little, as of now. The following table should let you know:
 
 | Language | Create? | Read? | Update? | Delete? | Additional Notes |
 | -------- | ------- | ----- | ------- | ------- | ---------------  |
-| InfluxQL | <input type="checkbox"> | <input type="checkbox" checked> | <input type="checkbox"> | <input type="checkbox"> | Only aggregate queries are supported, until functions can be made optional |
+| InfluxQL | - [ ] | - [ x ] | - [ ] | - [ ] | Only aggregate queries are supported, until functions can be made optional |
 
